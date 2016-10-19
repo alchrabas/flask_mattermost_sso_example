@@ -10,6 +10,7 @@ from models import db, GrantToken, BearerToken, Client, User
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:root@localhost/example_db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 oauth = OAuth2Provider(app)
 db.init_app(app)
@@ -104,15 +105,16 @@ def access_token():
 @app.before_first_request
 def create_database():
     db.create_all()
-    db.session.add(Client(
-        client_id="<your-client-id>",
-        client_secret="<your-client-secret>",
-        redirect_uris=["<your-mattermost-url>/signup/gitlab/complete",
-                       "<your-mattermost-url>/login/gitlab/complete"],
-        default_redirect_uri="<your-mattermost-url>/signup/gitlab/complete",
-        default_scopes=["login"]
-    ))
-    db.session.add(User("test_user", "test@exeris.org"))
+    if not Client.query.count():
+        db.session.add(Client(
+            client_id="<your-client-id>",
+            client_secret="<your-client-secret>",
+            redirect_uris=["<your-mattermost-url>/signup/gitlab/complete",
+                           "<your-mattermost-url>/login/gitlab/complete"],
+            default_redirect_uri="<your-mattermost-url>/signup/gitlab/complete",
+            default_scopes=["login"]
+        ))
+        db.session.add(User("test_user", "test@exeris.org"))
     db.session.commit()
 
 
