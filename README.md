@@ -13,7 +13,8 @@ The code was originally used to introduce single-sign-on for chat for
 [Exeris](https://github.com/alchrabas/exeris) - my open-source crafting and exploration game -
 but I've simplified the code excerpt so it can be reused in other projects.
 
-I've used Flask-OAuthlib, because I've needed Flask anyway, but it's probably very similar with bare oauthlib.
+I've used Flask-OAuthlib, because I've needed Flask anyway, but it's probably very similar with bare oauthlib 1.1.2.
+
 The user accounts are managed by Flask-login to simplify the process.
 
 `/oauth/authorize` endpoint is requested by the client's browser during the login process, but
@@ -105,3 +106,9 @@ I've created a bash script (`replace_mattermost_sso_button_text.sh`) which needs
 main directory to make the process easier.
 
 Remember the script needs to be run manually every time you upgrade mattermost.
+
+# Footnotes
+oauthlib 2.0.0 contains a bug which results in `argument of type 'NoneType' is not iterable` in authorize_handler.
+That's why I use version 1.1.2.
+
+Code was run and tested on python 3.5, but it'll most likely work on python 2.7.
