@@ -26,7 +26,7 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
 
     install_requires=['sqlalchemy', 'flask', 'flask-sqlalchemy',
-                      'flask-login', 'Flask-OAuthlib', 'psycopg2'],
+                      'flask-login', 'oauthlib==1.1.2', 'Flask-OAuthlib', 'psycopg2'],
 
     extras_require={
         'dev': ['check-manifest'],

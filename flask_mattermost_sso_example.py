@@ -2,8 +2,11 @@ import datetime
 import json
 
 from flask import Flask
+from flask import redirect
+from flask import render_template
 from flask import request
-from flask_login import login_required, current_user
+from flask import url_for
+from flask_login import login_required, current_user, LoginManager, login_user
 from flask_oauthlib.provider import OAuth2Provider
 
 from models import db, GrantToken, BearerToken, Client, User
@@ -11,9 +14,36 @@ from models import db, GrantToken, BearerToken, Client, User
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:root@localhost/example_db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SECRET_KEY"] = "ala123"
 
 oauth = OAuth2Provider(app)
 db.init_app(app)
+oauth = OAuth2Provider(app)
+
+# BEGIN functions needed by flask-login
+
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template('login.html')
+    username = request.form['username']
+    registered_user = User.query.filter_by(username=username).first()
+    if registered_user is None:
+        return redirect(url_for('login'))
+    login_user(registered_user)
+    return redirect(request.args.get('next') or url_for('index'))
+
+
+# END functions needed by flask-login
 
 
 @app.route("/api/v3/user")
@@ -30,7 +60,7 @@ def sso_user_info_for_mattermost():
 
 @oauth.clientgetter
 def load_client(requested_client_id):
-    return Client.query.filter_by(id=requested_client_id).first()
+    return Client.query.filter_by(client_id=requested_client_id).first()
 
 
 @oauth.grantgetter
@@ -118,5 +148,10 @@ def create_database():
     db.session.commit()
 
 
+@app.route("/")
+def front_page():
+    return "Example of Flask SSO provider for Mattermost chat"
+
+
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0")
